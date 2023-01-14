@@ -2,46 +2,15 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
-	"sync"
 
 	"github.com/gorilla/mux"
 )
 
-var store = new(sync.Map)
-
-var ErrorNoSuchKey = errors.New("no such key")
-
-func Put(key string, value string) error {
-	store.Store(key, value)
-
-	return nil
-}
-
-func Get(key string) (string, error) {
-	value, ok := store.Load(key)
-
-	if !ok {
-		return "", ErrorNoSuchKey
-	}
-
-	return value.(string), nil
-}
-
-func Delete(key string) error {
-	store.Delete(key)
-	return nil
-}
-
-func HelloGoHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Hello net/http!\n"))
-}
-
-func helloMuxHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Hello blabla\n"))
-}
+var logger *FileTransactionLogger
 
 func keyValuePutHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -61,6 +30,8 @@ func keyValuePutHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	println("put")
+	logger.WritePut(key, string(value))
 
 	w.WriteHeader(http.StatusCreated)
 }
@@ -92,12 +63,53 @@ func keyValueDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+	println("delete")
+
+	// logger.WriteDelete(key)
+}
+
+func InitializeTransactionLog() error {
+	var err error
+
+	logger, err := NewFileTransactionLogger("transaction.log")
+	println("init")
+	if err != nil {
+		return fmt.Errorf("failed to create event logger: %w", err)
+	}
+
+	events, errors := logger.ReadEvents()
+	e, ok := Event{}, true
+
+	for ok && err != nil {
+		select {
+		case err, ok = <-errors:
+		case e, ok = <-events:
+			switch e.EventType {
+			case EventDelete:
+				err = Delete(e.Key)
+			case EventPut:
+				err = Put(e.Key, e.Value)
+			}
+
+		}
+	}
+
+	logger.Run()
+
+	return err
 }
 
 func main() {
+	err := InitializeTransactionLog()
+
+	fmt.Printf("%v", logger.file)
+
+	if err != nil {
+		panic(err)
+	}
+
 	r := mux.NewRouter()
 
-	r.HandleFunc("/", helloMuxHandler)
 	r.HandleFunc("/v1/{key}", keyValuePutHandler).Methods("PUT")
 	r.HandleFunc("/v1/{key}", keyValueGetHandler).Methods("GET")
 	r.HandleFunc("/v1/{key}", keyValueDeleteHandler).Methods("DELETE")
