@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	ch := make(chan int, 1)
+	ch := make(chan int, 16)
 	var step int
 
 	go func() {
