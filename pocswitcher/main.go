@@ -14,7 +14,7 @@ func main() {
 	ch := make(chan int, 16)
 	var step int
 
-	// goroutine to send orders either from watcher or from main process
+	// goroutine to send orders either from the watcher or from the main process
 	go func() {
 		for {
 			fmt.Scan(&step)
@@ -22,9 +22,9 @@ func main() {
 		}
 	}()
 
-	// loop to receive orders and process them according to the step it is at
-	// each time a gets a value, it will spawn a goroutine to process the order this means that
-	// every step will be it own goroutine == MUCHO EFFICIENT
+	// loop to receive orders and process them according to the step.
+	// each time a gets a value, it will spawn a goroutine to process the order, this means that
+	// every step will be launched in its own goroutine == MUCHO EFFICIENT
 	for a := <-ch; ; a = <-ch {
 		go func(a int) {
 			switch a {
