@@ -1,4 +1,4 @@
-module github.com/PierreBou91/playground-go
+module microservice
 
 go 1.19
 
