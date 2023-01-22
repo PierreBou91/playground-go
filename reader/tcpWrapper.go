@@ -4,6 +4,7 @@ import "net"
 
 type wrappedFunc func(net.Conn)
 
+// Base TCP connection listener that accepts a connection handler function.
 func tcpWrapper(f wrappedFunc) {
 
 	ln, err := net.Listen("tcp", ":11112")

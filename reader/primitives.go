@@ -106,7 +106,7 @@ type UserInfoSubItem struct {
 // NewAssocFromScanner2 creates a new Associate2 struct from a bufio.Scanner
 // this function implements its specific SequenceSplitFunc
 func NewAssocFromScanner2(scanner *bufio.Scanner) (*Associate2, error) {
-	assocSplitFunc := SequenceSplitFunc(AssociateRQ) // accomodate a switch for RQ, AC, RJ
+	assocSplitFunc := SequenceSplitFunc(AssociateRQ) // TODO: accomodate a switch for RQ, AC, RJ
 	scanner.Split(assocSplitFunc)
 	a := &Associate2{}
 	val := reflect.ValueOf(a).Elem()
@@ -126,12 +126,6 @@ func NewAssocFromScanner2(scanner *bufio.Scanner) (*Associate2, error) {
 	return a, nil
 }
 
-//	func NewVariableItemsFromScanner(scanner *bufio.Scanner) (*VariableItems, error) {
-//		v := &VariableItems{}
-//		scanner.Scan()
-//		v.ApplicationContext = scanner.Bytes()
-//		return v, nil
-//	}
 func NewVariableItemsFromScanner(scanner *bufio.Scanner) (*VariableItems, error) {
 	v := &VariableItems{}
 	appContext, _ := NewApplicationContextFromScanner(scanner)

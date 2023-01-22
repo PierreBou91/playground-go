@@ -28,7 +28,7 @@ func SequenceSplitFunc(sequence []int) bufio.SplitFunc {
 	cursor := 0 // keeps track of the index in the sequence
 
 	return func(data []byte, atEOF bool) (advance int, token []byte, err error) {
-		// base condition to stop the scann
+		// base condition to stop the scan
 		if atEOF && len(data) == 0 {
 			return 0, nil, nil
 		}
